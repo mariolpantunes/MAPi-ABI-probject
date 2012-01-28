@@ -14,7 +14,9 @@ library(rpart)
 # Applying log to minimize seasonally effects
 pre.processing <- function(ts.data)
 {
-    ts.data.processed <- log(ts.data)
+    min.value <- (-1*min(ts.data))+10
+
+    ts.data.processed <- log((ts.data+min.value))
 
     return(ts.data.processed)
 }
@@ -79,9 +81,6 @@ embedded.dataset <- function(data, dimension = 3, tlag = 1)
         names <- cbind(names,paste("pr",i,sep = ""))
     }
     colnames(dataset) <- names
-    #rows <- (dimension*tlag):(nrow(data))
-    #dataset <- dataset[rows,]
-
     dataset <- na.omit(dataset)
 
     return(dataset)
@@ -161,30 +160,34 @@ error.func <- function(preds, test.data, learner.pars)
 ###############################################################################
 
 # Load data from CSV
-raw.data <- read.csv("data2.csv", header = TRUE, stringsAsFactors = FALSE)
+raw.data <- read.csv("data3.csv", header = TRUE, stringsAsFactors = FALSE)
 
 # Convert raw data into a TS object
-ts.data <- ts(data = raw.data[2:3], frequency = 4, start = c(2000,1), end = c(2011,2))
+ts.data <- ts(data = raw.data[2:3], frequency = 12, start = c(1990,12), end = c(2011,11))
 
 # Plot time series
 plot.ts(ts.data)
 
 # Pre-processing time series
 ts.data <- pre.processing(ts.data)
+#x11()
 #plot.ts(ts.data.processed)
+
+dataset.train.size <- 60
+dataset.test.size  <- 20
 
 # Original dataset
 # Trimester
 cat("Trimester\n")
-dataset <- embedded.dataset(ts.data,1,1)
+dataset <- embedded.dataset(ts.data,3,1)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
 
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6, 'rpart',
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
 list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
 
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'randomForest',
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
 list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
@@ -197,15 +200,15 @@ cat("\n")
 
 # Semester
 cat("Semester\n")
-dataset <- embedded.dataset(ts.data,2,1)
+dataset <- embedded.dataset(ts.data,6,1)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
 
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6, 'rpart',
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
 list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
 
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'randomForest',
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
 list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
@@ -218,15 +221,15 @@ cat("\n")
 
 # Anual
 cat("Anual\n")
-dataset <- embedded.dataset(ts.data,4,1)
+dataset <- embedded.dataset(ts.data,12,1)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
 
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5, 'rpart',
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
 list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
 
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5,'randomForest',
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
 list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
@@ -241,15 +244,15 @@ cat("\n\n")
 cat("Homologous period\n")
 
 cat("Trimester\n")
-dataset <- embedded.dataset(ts.data,1,4)
+dataset <- embedded.dataset(ts.data,3,12)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
 
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6, 'rpart',
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
 list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
 
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'randomForest',
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
 list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
@@ -262,15 +265,15 @@ cat("\n")
 
 # Semester
 cat("Semester\n")
-dataset <- embedded.dataset(ts.data,2,4)
+dataset <- embedded.dataset(ts.data,6,12)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
 
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6, 'rpart',
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
 list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
 
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=20,test.size=6,'randomForest',
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
 list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
@@ -283,21 +286,23 @@ cat("\n")
 
 # Anual
 cat("Anual\n")
-dataset <- embedded.dataset(ts.data,4,4)
+dataset <- embedded.dataset(ts.data,12,12)
 
-res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5,'svm',
+res.svm <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'svm',
 list(fr ~ .,type="nu-regression", kernel="polynomial"),'error.func',relearn.step=10)
-
-res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5, 'rpart',
-list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
-
-res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=15,test.size=5,'randomForest',
-list(fr ~ .),'error.func',relearn.step=10)
 
 cat("DT Results\n")
 print(colMeans(res.dt$Results))
+
+res.dt <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size, 'rpart',
+list(fr ~ .,method="anova"), 'error.func', relearn.step=10)
+
 cat("SVM Results\n")
 print(colMeans(res.svm$Results))
+
+res.rf <- MonteCarlo.estimates(coredata(dataset),nreps=10,train.size=dataset.train.size,test.size=dataset.test.size,'randomForest',
+list(fr ~ .),'error.func',relearn.step=10)
+
 cat("RF Results\n")
 print(colMeans(res.rf$Results))
 cat("\n\n")
