@@ -1,7 +1,6 @@
 library(zoo)
 library(tseries)
 library(TTR)
-library(kknn)
 library(randomForest)
 library(e1071)
 library(rpart)
@@ -166,12 +165,16 @@ raw.data <- read.csv("data3.csv", header = TRUE, stringsAsFactors = FALSE)
 ts.data <- ts(data = raw.data[2:3], frequency = 12, start = c(1990,12), end = c(2011,11))
 
 # Plot time series
-plot.ts(ts.data)
+pdf(file="doubleTime.pdf")
+plot(ts.data, main = "Unemployment in Portugal")
+dev.off()
 
 # Pre-processing time series
 ts.data <- pre.processing(ts.data)
-#x11()
-#plot.ts(ts.data.processed)
+ts.data <- pre.processing(ts.data)
+pdf(file="doubleTimeProcessed.pdf")
+plot(ts.data, main = "Unemployment in Portugal")
+dev.off()
 
 dataset.train.size <- 60
 dataset.test.size  <- 20
